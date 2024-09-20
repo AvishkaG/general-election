@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import flatMap from "lodash/flatMap";
+import orderBy from "lodash/orderBy";
 import Grid from "@mui/material/Grid2";
 import startCase from "lodash/startCase";
 import toLower from "lodash/toLower";
 import { Candidate, candidateEnum, ElectionResults } from "./types";
-import { AppBar, Backdrop, CircularProgress, Typography } from "@mui/material";
+import {
+  AppBar,
+  Backdrop,
+  CircularProgress,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import CountUp from "react-countup";
 import { fetchElectionData } from "./apis";
+import DistrictSummary from "./DistrictSummary";
 
 // function formatPercentage(value: number | undefined | null): string {
 //   return value.toFixed(2);
@@ -74,6 +84,8 @@ function hexToRgba(hex: string, opacity: number): string {
 }
 
 function App() {
+  const appTheme = useTheme();
+  const XS_MATCHES = useMediaQuery(appTheme.breakpoints.down("sm"));
   const [electionData, setElectionData] = useState<ElectionResults | null>(
     null
   );
@@ -120,7 +132,12 @@ function App() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-      <Grid container overflow="auto">
+      <Grid
+        container
+        marginBottom={4}
+        padding={XS_MATCHES ? 4 : 8}
+        overflow="auto"
+      >
         <AppBar
           component="nav"
           style={{ textAlign: "center", backgroundColor: "#333" }}
@@ -140,7 +157,7 @@ function App() {
             </Typography>
           </div>
         </AppBar>
-        <Grid container spacing={5} padding={8} size={12} marginTop={8}>
+        <Grid container spacing={5} size={12} marginTop={12} marginBottom={4}>
           <Grid size={{ xs: 12, md: 4 }}>
             <CandidateCard
               data={electionData?.candidates[0]}
@@ -163,6 +180,34 @@ function App() {
             />
           </Grid>
         </Grid>
+        {/*  */}
+        {electionData && (
+          <div
+            style={{
+              width: "100%",
+            }}
+          >
+            {orderBy(
+              flatMap(electionData.provinces, (province) => province.districts),
+              ["name"],
+              ["asc"]
+            ).map((district) => {
+              if (
+                !district.candidates.every(
+                  (x) => x.data.value === 0 || x.data.value === null
+                )
+              ) {
+                return (
+                  <div key={district.name} className="discard">
+                    <div className="distitle">{district.name}</div>
+                    <DistrictSummary key={district.name} data={district} />
+                  </div>
+                );
+              }
+            })}
+          </div>
+        )}
+        {/*  */}
       </Grid>
       <footer className="footer">
         <p>&copy; 2024 Avishka. All Rights Reserved.</p>

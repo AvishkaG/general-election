@@ -60,6 +60,46 @@
   height: 60px;
 }
 
+.discard {
+  box-shadow: 0px 2px 8px 5px #00000014;
+  background-color: white;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.distitle {
+  font-size: 22px;
+  font-weight: 500;
+  padding-bottom: 10px;
+}
+
+.diviTopic {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.divi-card {
+  padding: 16px;
+  box-shadow: 0px 2px 8px 2px #00000014;
+  background-color: white;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.divi-name {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 500;
+  padding-bottom: 10px;
+}
+.divi-total {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
 .footer {
   background-color: #333;
   color: white;
