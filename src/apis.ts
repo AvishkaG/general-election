@@ -2,7 +2,10 @@ import axios from "axios";
 import { ElectionResults, VoteUpdatePayload } from "./types";
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyvPUmJYqCzHOmKuuyHl_9Fljb6BRF-4uRdqwKGzXPsZ3ak65dQncXf1r_6D1vq7farHw/exec";
+  "https://corsproxy.io/?" +
+  encodeURIComponent(
+    "https://script.google.com/macros/s/AKfycbx3Ch8GJCQ7k_BTXAPxmMrwaiB0H6rDn2SqswKkAMmiGXQrJO-FGGjB_Iys-DIXU8DNlA/exec"
+  );
 
 export const fetchElectionData = async (): Promise<ElectionResults> => {
   try {
@@ -28,11 +31,9 @@ export const updateVotes = async (
   payload: VoteUpdatePayload
 ): Promise<ApiResponse> => {
   try {
-    console.log(payload);
-
     const response = await axios.post(API_URL, payload, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "text/plain;charset=utf-8",
       },
     });
 

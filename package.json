@@ -2,7 +2,7 @@
   "name": "presidential-election-results",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://avishkag.github.io/presidential-election-results",
+  "homepage": "https://avishkag.github.io/election-admin",
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",

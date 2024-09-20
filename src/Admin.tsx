@@ -6,6 +6,7 @@ import orderBy from "lodash/orderBy";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import {
   Alert,
+  Backdrop,
   Box,
   Button,
   CircularProgress,
@@ -33,15 +34,16 @@ const Admin = () => {
   const [districts, setDistricts] = useState<District[]>([]);
   const [divisions, setDivisions] = useState<Division[]>([]);
 
-  const [total, setTotal] = useState<number | undefined>(undefined);
-  const [akd, setAkd] = useState<number | undefined>(undefined);
-  const [sp, setSp] = useState<number | undefined>(undefined);
-  const [rw, setRw] = useState<number | undefined>(undefined);
+  const [total, setTotal] = useState("");
+  const [akd, setAkd] = useState("");
+  const [sp, setSp] = useState("");
+  const [rw, setRw] = useState("");
 
   const [electionData, setElectionData] = useState<ElectionResults | null>(
     null
   );
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<boolean>(false);
 
@@ -60,10 +62,6 @@ const Admin = () => {
 
     loadData();
   }, []);
-
-  useEffect(() => {
-    console.log(electionData);
-  }, [electionData]);
 
   const buildDistrictList = (data: ElectionResults) => {
     const districts = flatMap(data.provinces, (province) => province.districts);
@@ -86,23 +84,37 @@ const Admin = () => {
 
   let isButtonDisabled: boolean = false;
 
+  const getNumber = (txt: string): number => {
+    return Number(txt);
+  };
+
   const handleSubmit = () => {
+    setSending(true);
     const payload: VoteUpdatePayload = {
       district,
       division,
-      totalValidVotes: total ?? 0,
-      akdVotes: akd ?? 0,
-      spVotes: sp ?? 0,
-      rwVotes: rw ?? 0,
+      totalValidVotes: getNumber(total) ?? 0,
+      akdVotes: getNumber(akd) ?? 0,
+      spVotes: getNumber(sp) ?? 0,
+      rwVotes: getNumber(rw) ?? 0,
     };
 
     updateVotes(payload)
       .then((response) => {
-        console.log("API response:", response);
+        console.log("API response:", response.success);
+        setDistrict("");
+        setDivision("");
+        setTotal("");
+        setAkd("");
+        setSp("");
+        setRw("");
         setOpen(true);
       })
       .catch((error) => {
         console.error("API call failed:", error);
+      })
+      .finally(() => {
+        setSending(false);
       });
   };
 
@@ -122,118 +134,129 @@ const Admin = () => {
   }
 
   return (
-    <Grid container width="100%" spacing={2} padding={4}>
-      <Snackbar
-        open={open}
-        autoHideDuration={6000}
-        onClose={() => setOpen(false)}
+    <>
+      <Backdrop
+        sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
+        open={sending}
       >
-        <Alert
+        <CircularProgress color="inherit" />
+      </Backdrop>
+
+      <Grid container width="100%" spacing={2} padding={4}>
+        <Snackbar
+          open={open}
+          autoHideDuration={6000}
           onClose={() => setOpen(false)}
-          severity="success"
-          variant="filled"
-          sx={{ width: "100%" }}
         >
-          This is a success Alert inside a Snackbar!
-        </Alert>
-      </Snackbar>
-      <Grid size={4}>
-        <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">DISTRICT</InputLabel>
-          <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
-            value={district}
-            label="DISTRICT"
-            onChange={handleChangeDistrict}
+          <Alert
+            onClose={() => setOpen(false)}
+            severity={error && error.length ? "error" : "success"}
+            variant="filled"
+            sx={{ width: "100%" }}
           >
-            {districts.map((dis) => (
-              <MenuItem key={dis.name} value={dis.name}>
-                {dis.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            {error && error.length
+              ? "Submitting votes failed!"
+              : "Submitting votes successful!"}
+          </Alert>
+        </Snackbar>
+        <Grid size={4}>
+          <FormControl fullWidth>
+            <InputLabel id="demo-simple-select-label">DISTRICT</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={district}
+              label="DISTRICT"
+              onChange={handleChangeDistrict}
+            >
+              {districts.map((dis) => (
+                <MenuItem key={dis.name} value={dis.name}>
+                  {dis.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid size={4}>
+          <FormControl fullWidth disabled={isEmpty(district)}>
+            <InputLabel id="demo-simple-select-label">DIVISION</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={division}
+              label="DIVISION"
+              onChange={handleChangeDivision}
+            >
+              {divisions.map((div) => (
+                <MenuItem key={div.name} value={div.name}>
+                  {div.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid size={4}>
+          <FormControl fullWidth disabled={isEmpty(district)}>
+            <TextField
+              id="outlined-basic"
+              type="number"
+              label="TOTAL"
+              value={total}
+              onChange={(e) => setTotal(e.target.value)}
+              variant="outlined"
+            />
+          </FormControl>
+        </Grid>
+        <Grid size={4}>
+          <FormControl fullWidth disabled={isEmpty(division)}>
+            <TextField
+              id="outlined-basic"
+              type="number"
+              label={candidateEnum.get("akd")}
+              onChange={(e) => setAkd(e.target.value)}
+              value={akd}
+              variant="outlined"
+            />
+          </FormControl>
+        </Grid>
+        <Grid size={4}>
+          <FormControl fullWidth disabled={isEmpty(division)}>
+            <TextField
+              id="outlined-basic"
+              type="number"
+              label={candidateEnum.get("sp")}
+              onChange={(e) => setSp(e.target.value)}
+              value={sp}
+              variant="outlined"
+            />
+          </FormControl>
+        </Grid>
+        <Grid size={4}>
+          <FormControl fullWidth disabled={isEmpty(division)}>
+            <TextField
+              id="outlined-basic"
+              type="number"
+              label={candidateEnum.get("rw")}
+              value={rw}
+              onChange={(e) => setRw(e.target.value)}
+              variant="outlined"
+            />
+          </FormControl>
+        </Grid>
+        <Grid size={4} sx={{ margin: "30px auto" }}>
+          <FormControl fullWidth>
+            <Button
+              variant="contained"
+              size="large"
+              disabled={isButtonDisabled}
+              onClick={handleSubmit}
+            >
+              Submit
+            </Button>
+          </FormControl>
+        </Grid>
       </Grid>
-      <Grid size={4}>
-        <FormControl fullWidth disabled={isEmpty(district)}>
-          <InputLabel id="demo-simple-select-label">DIVISION</InputLabel>
-          <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
-            value={division}
-            label="DIVISION"
-            onChange={handleChangeDivision}
-          >
-            {divisions.map((div) => (
-              <MenuItem key={div.name} value={div.name}>
-                {div.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Grid>
-      <Grid size={4}>
-        <FormControl fullWidth disabled={isEmpty(district)}>
-          <TextField
-            id="outlined-basic"
-            type="number"
-            label="TOTAL"
-            value={total}
-            onChange={(e) => setTotal(Number(e.target.value))}
-            variant="outlined"
-          />
-        </FormControl>
-      </Grid>
-      <Grid size={4}>
-        <FormControl fullWidth disabled={isEmpty(division)}>
-          <TextField
-            id="outlined-basic"
-            type="number"
-            label={candidateEnum.get("akd")}
-            onChange={(e) => setAkd(Number(e.target.value))}
-            value={akd}
-            variant="outlined"
-          />
-        </FormControl>
-      </Grid>
-      <Grid size={4}>
-        <FormControl fullWidth disabled={isEmpty(division)}>
-          <TextField
-            id="outlined-basic"
-            type="number"
-            label={candidateEnum.get("sp")}
-            onChange={(e) => setSp(Number(e.target.value))}
-            value={sp}
-            variant="outlined"
-          />
-        </FormControl>
-      </Grid>
-      <Grid size={4}>
-        <FormControl fullWidth disabled={isEmpty(division)}>
-          <TextField
-            id="outlined-basic"
-            type="number"
-            label={candidateEnum.get("rw")}
-            value={rw}
-            onChange={(e) => setRw(Number(e.target.value))}
-            variant="outlined"
-          />
-        </FormControl>
-      </Grid>
-      <Grid size={4} sx={{ margin: "30px auto" }}>
-        <FormControl fullWidth>
-          <Button
-            variant="contained"
-            size="large"
-            disabled={isButtonDisabled}
-            onClick={handleSubmit}
-          >
-            Submit
-          </Button>
-        </FormControl>
-      </Grid>
-    </Grid>
+    </>
   );
 };
 
