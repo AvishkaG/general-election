@@ -6,13 +6,15 @@ import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Admin from "./Admin";
 
+const path = "/presidential-election-results";
+
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: `${path}/`,
     element: <App />,
   },
   {
-    path: "/admin",
+    path: `${path}/admin`,
     element: <Admin />,
   },
 ]);

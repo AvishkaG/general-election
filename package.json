@@ -2,6 +2,7 @@
   "name": "presidential-election-results",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://avishkag.github.io/presidential-election-results",
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
@@ -15,6 +16,7 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "axios": "^1.7.7",
+    "gh-pages": "^6.1.1",
     "lodash": "^4.17.21",
     "react": "^18.3.1",
     "react-countup": "^6.5.3",
@@ -25,6 +27,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
