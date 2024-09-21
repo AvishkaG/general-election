@@ -78,6 +78,11 @@ const DistrictSummary = ({ data }: { data: District }) => {
           </Grid>
         </AccordionDetails>
       </Accordion>
+      <div
+        style={{ paddingTop: "15px", fontWeight: 500 }}
+      >{`Yet to come: ${data.divisions
+        .filter((x) => !x.totalValidVotes)
+        .map((y) => ` ${y.name}`)}`}</div>
     </>
   );
 };
@@ -110,8 +115,8 @@ const DivisionCard = ({ division }: { division: Division }) => {
         options={options}
         series={series}
         type="pie"
-        width={400}
-        height={320}
+        width={300}
+        height={280}
       />
       <div className="divi-total">
         Total Votes: <span>{division.totalValidVotes.toLocaleString()}</span>

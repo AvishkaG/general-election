@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import flatMap from "lodash/flatMap";
+import maxBy from "lodash/maxBy";
 import orderBy from "lodash/orderBy";
 import Grid from "@mui/material/Grid2";
 import startCase from "lodash/startCase";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CircleIcon from "@mui/icons-material/Circle";
 import toLower from "lodash/toLower";
-import { Candidate, candidateEnum, ElectionResults } from "./types";
+import { Candidate, candidateEnum, District, ElectionResults } from "./types";
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   AppBar,
   Backdrop,
   CircularProgress,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -33,22 +40,30 @@ interface CandidateCardProps {
 }
 
 const CandidateCard = ({ cKey, color, data }: CandidateCardProps) => {
+  const appTheme = useTheme();
+  const XS_MATCHES = useMediaQuery(appTheme.breakpoints.down("sm"));
+
   return (
     <div className="card" style={{ backgroundColor: hexToRgba(color, 0.9) }}>
       <div className="fade-bottom">
         <img src={require(`../src/assets/${cKey}.png`)} alt="" />
         <div className="centered-text">
-          <div className="candi-name">{candidateEnum.get(cKey)}</div>
+          <div
+            className="candi-name"
+            style={{ fontSize: XS_MATCHES ? "1.2rem" : "1.5rem" }}
+          >
+            {candidateEnum.get(cKey)}
+          </div>
           <div>
             <div className="flex-column-center">
               Total Votes
-              <span style={{ fontSize: "2.6rem" }}>
-                {/* {formatVoteCount(data?.data.value)} */}
-                <CountUp end={data?.data.value ?? 0} />
+              <span style={{ fontSize: XS_MATCHES ? "2rem" : "2.6rem" }}>
+                <CountUp preserveValue end={data?.data.value ?? 0} />
               </span>
             </div>
-            <div style={{ fontSize: "2.1rem" }}>
+            <div style={{ fontSize: XS_MATCHES ? "1.8rem" : "2.1rem" }}>
               <CountUp
+                preserveValue
                 decimals={2}
                 suffix="%"
                 end={data?.data.percentage ?? 0}
@@ -124,6 +139,30 @@ function App() {
     return () => clearInterval(intervalId); // Clean up the interval on unmount
   }, []);
 
+  const getBulletColor = (dis: District) => {
+    const highestPercentageCandidate = maxBy(
+      dis.candidates.map((candidate) => ({
+        ...candidate,
+        data: {
+          ...candidate.data,
+          percentage: candidate.data.percentage || 0, // Handle null percentages
+        },
+      })),
+      (candidate: { data: { percentage: any } }) => candidate.data.percentage
+    );
+
+    switch (highestPercentageCandidate?.name) {
+      case "akd":
+        return "#c40a4b";
+      case "sp":
+        return "#b1b802";
+      case "rw":
+        return "#018241";
+      default:
+        return "#484848";
+    }
+  };
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#eff2f5" }}>
       <Backdrop
@@ -135,7 +174,7 @@ function App() {
       <Grid
         container
         marginBottom={4}
-        padding={XS_MATCHES ? 4 : 8}
+        padding={XS_MATCHES ? 2 : 8}
         overflow="auto"
       >
         <AppBar
@@ -157,7 +196,13 @@ function App() {
             </Typography>
           </div>
         </AppBar>
-        <Grid container spacing={5} size={12} marginTop={12} marginBottom={4}>
+        <Grid
+          container
+          spacing={XS_MATCHES ? 2 : 5}
+          size={12}
+          marginTop={XS_MATCHES ? 12 : 9}
+          marginBottom={4}
+        >
           <Grid size={{ xs: 12, md: 4 }}>
             <CandidateCard
               data={electionData?.candidates[0]}
@@ -199,8 +244,33 @@ function App() {
               ) {
                 return (
                   <div key={district.name} className="discard">
-                    <div className="distitle">{district.name}</div>
-                    <DistrictSummary key={district.name} data={district} />
+                    <Accordion
+                      style={{
+                        backgroundColor: "#ffffff",
+                        boxShadow: "none",
+                        border: "none",
+                      }}
+                    >
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="panel1-content"
+                      >
+                        <div className="distitle">
+                          <CircleIcon
+                            fontSize="small"
+                            htmlColor={getBulletColor(district)}
+                          />
+                          {`${district.name} (
+                      ${
+                        district.divisions.filter((x) => x.totalValidVotes)
+                          .length
+                      }/${district.divisions.length})`}
+                        </div>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <DistrictSummary key={district.name} data={district} />
+                      </AccordionDetails>
+                    </Accordion>
                   </div>
                 );
               }
