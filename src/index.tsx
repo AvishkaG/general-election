@@ -4,10 +4,9 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Admin from "./Admin";
+// import Admin from "./Admin";
 
-const path = "/presidential-election";
-// const path = "/election-admin";
+const path = "/general-election";
 
 const router = createBrowserRouter([
   {
@@ -25,7 +24,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <App />
   </React.StrictMode>
 );
 

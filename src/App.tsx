@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import "./App.css";
 import flatMap from "lodash/flatMap";
-import maxBy from "lodash/maxBy";
 import orderBy from "lodash/orderBy";
 import Grid from "@mui/material/Grid2";
-import startCase from "lodash/startCase";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CircleIcon from "@mui/icons-material/Circle";
-import toLower from "lodash/toLower";
-import { Candidate, candidateEnum, District, ElectionResults } from "./types";
+import CheckIcon from "@mui/icons-material/Check";
+import { ElectionResults } from "./types";
 import {
   Accordion,
   AccordionDetails,
@@ -16,87 +13,14 @@ import {
   AppBar,
   Backdrop,
   CircularProgress,
-  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import CountUp from "react-countup";
 import { fetchElectionData } from "./apis";
-import DistrictSummary from "./DistrictSummary";
-
-// function formatPercentage(value: number | undefined | null): string {
-//   return value.toFixed(2);
-// }
-
-function formatVoteCount(value: number | undefined | null): string {
-  return value ? new Intl.NumberFormat("en-US").format(value) : "N/A";
-}
-
-interface CandidateCardProps {
-  color: string;
-  cKey: string;
-  data: Candidate | undefined;
-}
-
-const CandidateCard = ({ cKey, color, data }: CandidateCardProps) => {
-  const appTheme = useTheme();
-  const XS_MATCHES = useMediaQuery(appTheme.breakpoints.down("sm"));
-
-  return (
-    <div className="card" style={{ backgroundColor: hexToRgba(color, 0.9) }}>
-      <div className="fade-bottom">
-        <img src={require(`../src/assets/${cKey}.png`)} alt="" />
-        <div className="centered-text">
-          <div
-            className="candi-name"
-            style={{ fontSize: XS_MATCHES ? "1.2rem" : "1.5rem" }}
-          >
-            {candidateEnum.get(cKey)}
-          </div>
-          <div>
-            <div className="flex-column-center">
-              Total Votes
-              <span style={{ fontSize: XS_MATCHES ? "2rem" : "2.6rem" }}>
-                <CountUp preserveValue end={data?.data.value ?? 0} />
-              </span>
-            </div>
-            <div style={{ fontSize: XS_MATCHES ? "1.8rem" : "2.1rem" }}>
-              <CountUp
-                preserveValue
-                decimals={2}
-                suffix="%"
-                end={data?.data.percentage ?? 0}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-function hexToRgba(hex: string, opacity: number): string {
-  // Remove the hash at the start if it's there
-  hex = hex.replace(/^#/, "");
-
-  // If the hex value is 8 characters long, it's a hex with alpha
-  if (hex.length === 8) {
-    // Extract alpha and color
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    const a = parseInt(hex.substr(6, 2), 16) / 255;
-    return `rgba(${r}, ${g}, ${b}, ${opacity * a})`;
-  }
-
-  // If the hex value is 6 characters long, it's a hex without alpha
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-}
+import ResultTable from "./ResultTable";
+import { calculateElectionResults, getBulletColor } from "./utils";
+import "./App.css";
 
 function App() {
   const appTheme = useTheme();
@@ -111,7 +35,9 @@ function App() {
     const loadInitialData = async () => {
       try {
         const data = await fetchElectionData();
-        setElectionData(data);
+        const newData = calculateElectionResults(data);
+
+        setElectionData(newData);
       } catch (error) {
         setError("Failed to fetch election data.");
       } finally {
@@ -126,7 +52,8 @@ function App() {
     const fetchDataWithoutLoading = async () => {
       try {
         const data = await fetchElectionData();
-        setElectionData(data);
+        const newData = calculateElectionResults(data);
+        setElectionData(newData);
       } catch (error) {
         setError("Failed to fetch election data.");
       }
@@ -139,32 +66,8 @@ function App() {
     return () => clearInterval(intervalId); // Clean up the interval on unmount
   }, []);
 
-  const getBulletColor = (dis: District) => {
-    const highestPercentageCandidate = maxBy(
-      dis.candidates.map((candidate) => ({
-        ...candidate,
-        data: {
-          ...candidate.data,
-          percentage: candidate.data.percentage || 0, // Handle null percentages
-        },
-      })),
-      (candidate: { data: { percentage: any } }) => candidate.data.percentage
-    );
-
-    switch (highestPercentageCandidate?.name) {
-      case "akd":
-        return "#c40a4b";
-      case "sp":
-        return "#b1b802";
-      case "rw":
-        return "#018241";
-      default:
-        return "#484848";
-    }
-  };
-
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#eff2f5" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#f2f5f7" }}>
       <Backdrop
         sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
         open={loading}
@@ -192,92 +95,160 @@ function App() {
               paddingTop={1}
               style={{ textTransform: "uppercase", fontSize: "1.3rem" }}
             >
-              presidential election - 2024
+              general election - 2024
             </Typography>
           </div>
         </AppBar>
-        <Grid
-          container
-          spacing={XS_MATCHES ? 2 : 5}
-          size={12}
-          marginTop={XS_MATCHES ? 12 : 9}
-          marginBottom={4}
-        >
-          <Grid size={{ xs: 12, md: 4 }}>
-            <CandidateCard
-              data={electionData?.candidates[0]}
-              cKey="akd"
-              color="#c40a4b"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <CandidateCard
-              data={electionData?.candidates[1]}
-              cKey="sp"
-              color="#b1b802"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <CandidateCard
-              data={electionData?.candidates[2]}
-              cKey="rw"
-              color="#018241"
-            />
-          </Grid>
-        </Grid>
-        {/*  */}
-        {electionData && (
-          <div
-            style={{
-              width: "100%",
-            }}
-          >
-            {orderBy(
-              flatMap(electionData.provinces, (province) => province.districts),
-              ["name"],
-              ["asc"]
-            ).map((district) => {
-              if (
-                !district.candidates.every(
-                  (x) => x.data.value === 0 || x.data.value === null
-                )
-              ) {
-                return (
-                  <div key={district.name} className="discard">
-                    <Accordion
-                      style={{
-                        backgroundColor: "#ffffff",
-                        boxShadow: "none",
-                        border: "none",
-                      }}
-                    >
-                      <AccordionSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls="panel1-content"
-                      >
-                        <div className="distitle">
-                          <CircleIcon
-                            fontSize="small"
-                            htmlColor={getBulletColor(district)}
-                          />
-                          {`${district.name} (
+        {!loading && (
+          <>
+            <Grid
+              container
+              spacing={XS_MATCHES ? 2 : 5}
+              size={12}
+              marginTop={XS_MATCHES ? 12 : 9}
+              marginBottom={4}
+            >
+              {electionData && <ResultTable data={electionData?.parties} />}
+            </Grid>
+            <div className="released">
+              {`Released Division/Postal Results :-
+          
+           ${
+             flatMap(electionData?.provinces, (province) =>
+               flatMap(province.districts, (district) =>
+                 district.divisions.filter(
+                   (division) => division.totalValidVotes !== null
+                 )
+               )
+             ).length
+           }
+          / 182`}
+            </div>
+            {electionData && (
+              <div
+                style={{
+                  width: "100%",
+                }}
+              >
+                {orderBy(
+                  flatMap(
+                    electionData.provinces,
+                    (province) => province.districts
+                  ),
+                  ["name"],
+                  ["asc"]
+                ).map((district) => {
+                  if (
+                    !district.parties.every(
+                      (x) => x.data.value === 0 || x.data.value === null
+                    )
+                  ) {
+                    return (
+                      <div key={district.name} className="discard">
+                        <Accordion
+                          style={{
+                            backgroundColor: "#ffffff",
+                            boxShadow: "none",
+                            border: "none",
+                          }}
+                        >
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="panel1-content"
+                            sx={{
+                              padding: 0,
+                            }}
+                          >
+                            <div className="distitle">
+                              <CircleIcon
+                                fontSize="small"
+                                htmlColor={getBulletColor(district)}
+                              />
+                              {`${district.name} (
                       ${
                         district.divisions.filter((x) => x.totalValidVotes)
                           .length
                       }/${district.divisions.length})`}
-                        </div>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <DistrictSummary key={district.name} data={district} />
-                      </AccordionDetails>
-                    </Accordion>
-                  </div>
-                );
-              }
-            })}
-          </div>
+                              {district.divisions.every(
+                                (x) => x.totalValidVotes
+                              ) && <CheckIcon color="success" />}
+                            </div>
+                          </AccordionSummary>
+                          <AccordionDetails style={{ padding: 0 }}>
+                            <ResultTable data={district.parties} />
+                            <div className="divi-total">
+                              Total Votes:{" "}
+                              <span>
+                                {district.totalValidVotes.toLocaleString()}
+                              </span>
+                            </div>
+                            <Accordion
+                              style={{
+                                backgroundColor: "#f5f5f5",
+                                boxShadow: "none",
+                                border: "none",
+                              }}
+                            >
+                              <AccordionSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls="panel1-content"
+                              >
+                                <div className="diviTopic">Divisions</div>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                <Grid container spacing={3}>
+                                  {district.divisions.map((division) => {
+                                    if (division.totalValidVotes) {
+                                      return (
+                                        <Grid
+                                          key={division.name}
+                                          size={{
+                                            lg: 6,
+                                            md: 6,
+                                            sm: 12,
+                                            xs: 12,
+                                          }}
+                                        >
+                                          <div className="divi-card">
+                                            <div className="divi-name">
+                                              {division.name}
+                                            </div>
+                                            <ResultTable
+                                              isDivision
+                                              data={division.parties}
+                                            />
+                                            <div className="divi-total">
+                                              Total Votes:{" "}
+                                              <span>
+                                                {division.totalValidVotes.toLocaleString()}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </Grid>
+                                      );
+                                    }
+                                  })}
+                                </Grid>
+                              </AccordionDetails>
+                            </Accordion>
+                          </AccordionDetails>
+                        </Accordion>
+                        {district.divisions.some((x) => !x.totalValidVotes) && (
+                          <div style={{ paddingTop: "15px", fontWeight: 500 }}>
+                            {`Yet to come: ${district.divisions
+                              .filter((x) => !x.totalValidVotes)
+                              .map((y) => ` ${y.name}`)
+                              .join(",")}`}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+            )}
+          </>
         )}
-        {/*  */}
       </Grid>
       <footer className="footer">
         <p>&copy; 2024 Avishka. All Rights Reserved.</p>

@@ -12,7 +12,7 @@ const DistrictSummary = ({ data }: { data: District }) => {
       id: data.name,
     },
     colors: COLORS,
-    labels: data.candidates.map((c) => c.name.toUpperCase()),
+    labels: data.parties.map((c) => c.name.toUpperCase()),
     legend: {
       show: false,
     },
@@ -25,7 +25,7 @@ const DistrictSummary = ({ data }: { data: District }) => {
     },
   };
 
-  const series = data.candidates.map((c) => c.data.value ?? 0);
+  const series = data.parties.map((c) => c.data.value ?? 0);
 
   return (
     <>
@@ -93,7 +93,7 @@ const DivisionCard = ({ division }: { division: Division }) => {
       id: division.name,
     },
     colors: COLORS,
-    labels: division.candidates.map((c) => c.name.toUpperCase()),
+    labels: division.parties.map((c) => c.name.toUpperCase()),
     legend: {
       show: false,
     },
@@ -106,7 +106,7 @@ const DivisionCard = ({ division }: { division: Division }) => {
     },
   };
 
-  const series = division.candidates.map((c) => c.data.value ?? 0);
+  const series = division.parties.map((c) => c.data.value ?? 0);
 
   return (
     <div className="divi-card">

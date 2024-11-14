@@ -1,11 +1,11 @@
 @font-face {
-  font-family: "Montserrat";
-  src: url("./assets//Montserrat.ttf");
+  font-family: "Inter";
+  src: url("./assets//Inter.ttf");
 }
 
 body {
   margin: 0;
-  font-family: "Montserrat", sans-serif !important;
+  font-family: "Inter", sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

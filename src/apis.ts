@@ -1,11 +1,18 @@
 import axios from "axios";
 import { ElectionResults, VoteUpdatePayload } from "./types";
 
+// const API_URL =
+//   "https://corsproxy.io/?" +
+//   encodeURIComponent(
+//     "https://script.google.com/macros/s/AKfycbwaCBTlpXhgnMCbyi80vT0mw7KU_z-Tq_o0swMrUALBdVpW_5j3io2eVYCQeDxYnwkFPw/exec"
+//   );
+
+// const API_URL = `https://api.allorigins.win/get?url=${encodeURIComponent(
+//   "https://script.google.com/macros/s/AKfycbwaCBTlpXhgnMCbyi80vT0mw7KU_z-Tq_o0swMrUALBdVpW_5j3io2eVYCQeDxYnwkFPw/exec"
+// )}`;
+
 const API_URL =
-  "https://corsproxy.io/?" +
-  encodeURIComponent(
-    "https://script.google.com/macros/s/AKfycbx3Ch8GJCQ7k_BTXAPxmMrwaiB0H6rDn2SqswKkAMmiGXQrJO-FGGjB_Iys-DIXU8DNlA/exec"
-  );
+  "https://script.google.com/macros/s/AKfycbx_P3MGMcOYUEqbWXojnxix5yeXWPC2gO0buoZGbb3E70z2Z43cjYD1Ksyuap2UqQMgRQ/exec";
 
 export const fetchElectionData = async (): Promise<ElectionResults> => {
   try {

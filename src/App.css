@@ -42,6 +42,12 @@
   text-shadow: rgb(124, 123, 123) 1px 0 10px;
 }
 
+.released {
+  padding-bottom: 20px;
+  font-weight: 600;
+  font-size: 18px;
+}
+
 .fade-bottom img {
   margin: auto;
   height: 20vh;
@@ -64,12 +70,12 @@
   box-shadow: 0px 2px 8px 5px #00000014;
   background-color: white;
   border-radius: 4px;
-  padding: 4px;
+  padding: 16px;
   margin-bottom: 20px;
 }
 
 .distitle {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -77,7 +83,7 @@
 }
 
 .diviTopic {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
 }
 
@@ -100,6 +106,7 @@
   font-size: 16px;
   font-weight: 500;
   text-align: center;
+  margin: 15px auto;
 }
 
 .footer {

@@ -1,37 +1,40 @@
 export interface ElectionResults {
   totalValidVotes: number;
-  candidates: Candidate[];
+  parties: Party[];
   provinces: Province[];
 }
 
 export interface Province {
   name: string;
   totalValidVotes: number;
-  candidates: Candidate[];
+  parties: Party[];
   districts: District[];
 }
 
 export interface District {
   name: string;
   totalValidVotes: number;
-  candidates: Candidate[];
+  totalSeats: number;
+  parties: Party[];
   divisions: Division[];
 }
 
 export interface Division {
   name: string;
   totalValidVotes: number;
-  candidates: Candidate[];
+  parties: Party[];
 }
 
-export interface Candidate {
+export interface Party {
   name: string;
-  data: CandidateVote;
+  data: PartyVote;
 }
 
-export interface CandidateVote {
+export interface PartyVote {
   value: number | null;
   percentage: number | null;
+  estimatedSeats?: number;
+  seats?: number;
 }
 
 export interface VoteUpdatePayload {
@@ -41,6 +44,13 @@ export interface VoteUpdatePayload {
   akdVotes: number;
   spVotes: number;
   rwVotes: number;
+}
+
+export interface IPartyConfig {
+  id: string;
+  icon: () => JSX.Element;
+  name: string;
+  color: string;
 }
 
 export const candidateEnum = new Map<string, string>([
